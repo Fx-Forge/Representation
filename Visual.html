@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Array, Linked List & Stack Visualization</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/core.css">
+  <script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
+</head>
+<body class="font-sans text-center mt-8 bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen">
+
+  <h1 class="text-3xl font-extrabold mb-8 text-gray-800 drop-shadow-md">📊 Array, Linked List & Stack Visualization</h1>
+
+  <!-- Input Section -->
+  <div class="mb-8">
+    <input id="arrayInput" type="text" value="10,20,30,40,50" placeholder="Enter values (comma separated)"
+      class="w-80 p-3 border border-gray-400 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+    <button id="btn"
+      class="ml-3 px-5 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
+      Visualize
+    </button>
+  </div>
+
+  <!-- Array -->
+  <h2 class="text-2xl font-semibold text-gray-700">📦 Array Representation</h2>
+  <div id="array-container" class="flex justify-center flex-wrap mt-5"></div>
+
+  <!-- Linked List -->
+  <h2 class="text-2xl font-semibold text-gray-700 mt-10">🔗 Linked List Representation</h2>
+  <div id="list-container" class="flex justify-center items-center flex-wrap mt-5"></div>
+
+  <!-- Stack -->
+  <h2 class="text-2xl font-semibold text-gray-700 mt-10">🗂️ Stack Representation</h2>
+  <div class="mt-5">
+    <input id="stackInput" type="text" placeholder="Enter value"
+      class="w-56 p-2 border border-gray-400 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none" />
+    <button id="pushBtn"
+      class="ml-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition">
+      Push
+    </button>
+    <button id="popBtn"
+      class="ml-2 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow hover:bg-red-700 transition">
+      Pop
+    </button>
+  </div>
+
+  <div id="stack-container"
+    class="flex flex-col-reverse items-center mt-10 min-h-[220px] w-32 mx-auto p-3 border-2 border-gray-700 bg-white shadow-lg rounded-lg relative">
+    <div class="absolute -top-8 font-bold text-gray-700 text-lg">TOP</div>
+  </div>
+
+  <!-- Python Code -->
+  <script type="py">
+from js import document, window
+from pyodide.ffi import create_proxy
+
+stack = []
+MAX_SIZE = 4  
+
+def render_structures(event=None):
+    arr_input = document.getElementById("arrayInput").value
+    arr = [x.strip() for x in arr_input.split(",") if x.strip()]
+
+    # --- Array Representation ---
+    array_container = document.getElementById("array-container")
+    array_container.innerHTML = ""  
+
+    for idx, val in enumerate(arr):
+        item = document.createElement("div")
+        item.className = "flex flex-col items-center m-2"
+
+        box = document.createElement("div")
+        box.className = "w-16 h-16 border-2 border-blue-700 bg-blue-100 flex items-center justify-center text-lg font-semibold rounded-lg shadow-md"
+        box.innerHTML = f"{val}"
+
+        index = document.createElement("div")
+        index.className = "mt-1 text-sm text-gray-600"
+        index.innerHTML = f"{idx}"
+
+        item.appendChild(box)
+        item.appendChild(index)
+        array_container.appendChild(item)
+
+    # --- Linked List Representation ---
+    list_container = document.getElementById("list-container")
+    list_container.innerHTML = ""  
+    if arr:
+      head_div = document.createElement("div")
+      head_div.className = "flex flex-col items-center mr-3 font-bold text-gray-700"
+      head_div.innerHTML = "Head<div class='text-2xl text-blue-600'>&#8594;</div>"
+      list_container.appendChild(head_div)
+
+    for idx, val in enumerate(arr):
+        node = document.createElement("div")
+        node.className = "flex border-2 border-green-700 rounded-lg overflow-hidden shadow-md"
+
+        data_box = document.createElement("div")
+        data_box.className = "w-16 h-16 flex items-center justify-center text-lg font-semibold bg-green-100 border-r-2 border-green-700"
+        data_box.innerHTML = f"{val}"
+
+        addr_box = document.createElement("div")
+        addr_box.className = "w-16 h-16 flex items-center justify-center text-sm bg-gray-100 text-gray-700"
+        if idx == len(arr) - 1:
+            addr_box.innerHTML = "NULL"
+        else:
+            addr_box.innerHTML = "Next"
+
+        node.appendChild(data_box)
+        node.appendChild(addr_box)
+        list_container.appendChild(node)
+
+        if idx != len(arr) - 1:
+            arrow = document.createElement("div")
+            arrow.className = "text-2xl mx-3 flex items-center text-blue-600"
+            arrow.innerHTML = "&#8594;"
+            list_container.appendChild(arrow)
+
+# --- Stack Functions ---
+def render_stack():
+    stack_container = document.getElementById("stack-container")
+    stack_container.innerHTML = "<div class='absolute -top-8 font-bold text-gray-700 text-lg'>TOP</div>"
+    for val in stack:
+        box = document.createElement("div")
+        box.className = "w-20 h-12 border-2 border-purple-700 flex items-center justify-center my-1 text-lg font-semibold bg-purple-100 rounded-lg shadow-md"
+        box.innerHTML = f"{val}"
+        stack_container.appendChild(box)
+
+def push_stack(event=None):
+    val = document.getElementById("stackInput").value.strip()
+    if not val:
+        return
+    if len(stack) >= MAX_SIZE:
+        window.alert("⚠️ Stack Overflow!")
+        return
+    stack.append(val)
+    render_stack()
+    document.getElementById("stackInput").value = ""
+
+def pop_stack(event=None):
+    if not stack:
+        window.alert("⚠️ Stack Underflow!")
+        return
+    stack.pop()
+    render_stack()
+
+# ✅ Event Binding
+render_structures_proxy = create_proxy(render_structures)
+document.getElementById("btn").addEventListener("click", render_structures_proxy)
+
+push_stack_proxy = create_proxy(push_stack)
+document.getElementById("pushBtn").addEventListener("click", push_stack_proxy)
+
+pop_stack_proxy = create_proxy(pop_stack)
+document.getElementById("popBtn").addEventListener("click", pop_stack_proxy)
+  </script>
+</body>
+</html>
